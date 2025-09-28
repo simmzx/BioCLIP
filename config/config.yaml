@@ -1,0 +1,66 @@
+data:
+  # JUMP-CP数据配置
+  data_root: ./datasets/jump_cp
+  
+  # 真实的数据量（基于JUMP-CP）
+  n_complete_trimodal: 1327  # 完整三模态数据
+  n_partial_bimodal: 30000   # 双模态数据
+  n_single_modal: 100000     # 单模态数据
+  n_pseudo_samples: 5000      # 生成的伪标签数量
+  
+  # 数据源
+  sources:
+    molecules: 
+      - ZINC20
+      - ChEMBL30
+      - PubChem
+    gene_expression:
+      - LINCS_L1000  # 978个Landmark基因
+      - CMAP         # Connectivity Map
+    cell_morphology:
+      - JUMP_CP      # Jump Cell Painting Consortium
+      - CPJUMP1      # 第一批JUMP数据
+  
+  # 批次大小
+  batch_sizes:
+    stage1: 256  # 单模态预训练
+    stage2: 128  # 双模态对齐  
+    stage3: 32   # 三模态融合
+
+model:
+  # 模型配置
+  hidden_dim: 256
+  projection_dim: 128
+  temperature: 0.07
+  
+  # 编码器选择
+  mol_encoder: gin_pretrained
+  gene_encoder: performer
+  morph_encoder: vit
+
+training:
+  # 训练轮数
+  stage1_epochs: 50
+  stage2_epochs: 100
+  stage3_epochs: 150
+  
+  # 学习率
+  learning_rate: 1e-4
+  warmup_epochs: 10
+  
+  # 伪标签生成
+  confidence_threshold: 0.85
+  pseudo_label_weight: 0.5
+
+downstream:
+  # 下游任务配置
+  tasks:
+    - tox21
+    - sider
+    - bindingdb
+    - davis
+  
+  finetune_epochs: 50
+  finetune_lr: 1e-5
+  freeze_encoders: false
+  freeze_n_layers: 0
